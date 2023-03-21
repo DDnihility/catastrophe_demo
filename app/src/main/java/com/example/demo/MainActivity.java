@@ -31,26 +31,38 @@ public class MainActivity extends AppCompatActivity{
     RecyclerView mRecyclerView;
     MyAdapter mMyAdapter;
     List<News> mNewsList = new ArrayList<>();
-
+    float ACC_X,ACC_Y,ACC_Z,GYR_X,GYR_Y,GYR_Z;
     SensorManager mSensorManager;
     Sensor mAccelerometer;
+    DataSave dataSave = new DataSave();
     SensorEventListener eventListener = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent event) {
-            Log.i("jeff","onSensorChanged event="+event.values.toString());
+            //每0.02s获取传感器加速度与角速度读数与时间戳，保存为csv文件
             switch (event.sensor.getType()){
                 case TYPE_ACCELEROMETER:
-                    mNewsList.get(0).setContent(event.values[0]);
-                    mNewsList.get(1).setContent(event.values[1]);
-                    mNewsList.get(2).setContent(event.values[2]);
+                    ACC_X=event.values[0];
+                    ACC_Y=event.values[1];
+                    ACC_Z=event.values[2];
                     break;
+                case TYPE_GYROSCOPE:
+                    GYR_X=event.values[0];
+                    GYR_Y=event.values[1];
+                    GYR_Z=event.values[2];
+                break;
             }
-            mMyAdapter.notifyItemRangeChanged(0, 8);
+            mNewsList.get(0).setContent(ACC_X);
+            mNewsList.get(1).setContent(ACC_Y);
+            mNewsList.get(2).setContent(ACC_Z);
+            mNewsList.get(3).setContent(GYR_X);
+            mNewsList.get(4).setContent(GYR_Y);
+            mNewsList.get(5).setContent(GYR_Z);
+            mMyAdapter.notifyItemRangeChanged(0, 6);
+            dataSave.saveData(event.timestamp,ACC_X,ACC_Y,ACC_Z,GYR_X,GYR_Y,GYR_Z);
         }
 
         @Override
-        public void onAccuracyChanged(Sensor sensor, int accuracy) {
-            Log.i("jeff","onAccuracyChanged sensor="+sensor.getName()+",accuracy="+accuracy);
+        public void onAccuracyChanged(Sensor sensor, int i) {
         }
     };
     @Override
@@ -67,7 +79,9 @@ public class MainActivity extends AppCompatActivity{
         mNewsList.add(new News("X方向加速度：", 0));
         mNewsList.add(new News("Y方向加速度：", 0));
         mNewsList.add(new News("z方向加速度：", 0));
-
+        mNewsList.add(new News("X方向角速度：", 0));
+        mNewsList.add(new News("Y方向角速度：", 0));
+        mNewsList.add(new News("z方向角速度：", 0));
         mMyAdapter = new MyAdapter();
         mRecyclerView.setAdapter(mMyAdapter);
         LinearLayoutManager layoutManager = new LinearLayoutManager(MainActivity.this);
