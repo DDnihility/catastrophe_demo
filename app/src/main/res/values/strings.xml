@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">demo</string>
+    <string name="buttonStart">开始</string>
+    <string name="buttonEnd">结束</string>
 </resources>

@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -22,6 +23,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -35,6 +37,7 @@ public class MainActivity extends AppCompatActivity{
     SensorManager mSensorManager;
     Sensor mAccelerometer;
     DataSave dataSave = new DataSave();
+    String filename;
     SensorEventListener eventListener = new SensorEventListener() {
         @Override
         public void onSensorChanged(SensorEvent event) {
@@ -58,7 +61,7 @@ public class MainActivity extends AppCompatActivity{
             mNewsList.get(4).setContent(GYR_Y);
             mNewsList.get(5).setContent(GYR_Z);
             mMyAdapter.notifyItemRangeChanged(0, 6);
-            dataSave.saveData(event.timestamp,ACC_X,ACC_Y,ACC_Z,GYR_X,GYR_Y,GYR_Z);
+            dataSave.saveData(event.timestamp,ACC_X,ACC_Y,ACC_Z,GYR_X,GYR_Y,GYR_Z,filename);
         }
 
         @Override
@@ -88,11 +91,30 @@ public class MainActivity extends AppCompatActivity{
         mRecyclerView.setLayoutManager(layoutManager);
         DividerItemDecoration mDivider = new DividerItemDecoration(this, DividerItemDecoration.VERTICAL);
         mRecyclerView.addItemDecoration(mDivider);
+        Button buttonStart =  findViewById(R.id.button);
+        Button buttonEnd = findViewById(R.id.button2);
+        buttonStart.setEnabled(true);
+        buttonEnd.setEnabled(false);   
+        //按钮点击事件，开始时注册传感器监听器，结束时取消注册
+        buttonStart.setOnClickListener(view -> {
+            Sensor mSensor = mSensorManager.getDefaultSensor(TYPE_ACCELEROMETER);
+            mSensorManager.registerListener(eventListener,mSensor,SensorManager.SENSOR_DELAY_GAME);
+            mSensor = mSensorManager.getDefaultSensor(TYPE_GYROSCOPE);
+            mSensorManager.registerListener(eventListener,mSensor,SensorManager.SENSOR_DELAY_GAME);
+            //记录当前时间生成新的文件名供保存数据使用
+            filename = "data"+System.currentTimeMillis();
+            //按下后按钮变灰，防止重复点击；结束按钮可点击
+            buttonStart.setEnabled(false);
+            buttonEnd.setEnabled(true);
+        });
+        buttonEnd.setOnClickListener(view -> {
+            mSensorManager.unregisterListener(eventListener);
+            buttonStart.setEnabled(true);
+            buttonEnd.setEnabled(false);   
+        });
     }
     protected void onResume() {
         super.onResume();
-        Sensor mSensor = mSensorManager.getDefaultSensor(TYPE_ACCELEROMETER);
-        mSensorManager.registerListener(eventListener,mSensor,SensorManager.SENSOR_DELAY_GAME);
     }
 
     protected void onPause() {
